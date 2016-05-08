@@ -223,6 +223,7 @@ var futapi = function(options){
       defaultOptions,
       function(error, response, body){
           if(error) return cb(error,null);
+          if(response.statusCode == 401) return cb(new Error(response.statusMessage),null);
           if(response.statusCode == 404) return cb(new Error(response.statusMessage),null);
           if(utils.isApiMessage(body)) cb(new Error(JSON.stringify(body)), null);
           cb(null,body);
