@@ -86,6 +86,14 @@ var futapi = function(options){
   futApi.prototype.relist = function(cb){
       sendRequest(urls.api.relist,{xHttpMethod: "PUT"}, cb);
   };
+
+  futApi.prototype.getSquads = function(cb){
+      sendRequest(urls.api.squadList, cb);
+  };
+
+  futApi.prototype.getSquadDetails = function(squadId, cb){
+      sendRequest(utils.format(urls.api.squadDetails,[squadId]), cb);
+  }
   
   futApi.prototype.search = function(filter,cb){
       var defaultFilter = {
@@ -181,6 +189,10 @@ var futapi = function(options){
   futApi.prototype.quickSell = function(itemDataId, cb ){
       sendRequest(urls.api.item  + utils.format("/{0}",[itemDataId]), {  xHttpMethod: "DELETE" }, cb);
   };
+
+  futApi.prototype.deleteSoldFromTrade = function(cb){
+      sendRequest(urls.api.sold,{xHttpMethod: "DELETE"}, cb);
+  }
   
   function toUrlParameters(obj){
       var str = "";
