@@ -9,7 +9,7 @@
 ## Usage
 ### Create a new instance
 ```javascript
-var futapi = require("fut-api")
+var futapi = require("fut")
 var apiClient = new futapi([options])
 ```
 ##### Options
