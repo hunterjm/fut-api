@@ -1,12 +1,16 @@
 # fut-api - FIFA 16 - unofficial
 
-[![NPM](https://nodei.co/npm/fut-api.png)](https://nodei.co/npm/fut-api/)
+<p align="center">
+  <a href="https://www.npmjs.com/package/fut"><img src="https://img.shields.io/npm/dm/fut.svg" alt="npm downloads"></a>
+  <a href="https://www.npmjs.com/package/fut"><img src="https://img.shields.io/npm/v/fut.svg" alt="npm version"></a>
+  <a href="https://standardjs.com"><img src="https://img.shields.io/badge/code%20style-standard-brightgreen.svg" alt="js-standard-style"></a>
+</p>
 
 ## Usage
 ### Create a new instance
 ```javascript
-var futapi = require("fut-api");
-var apiClient = new futapi([options]);
+var futapi = require("fut-api")
+var apiClient = new futapi([options])
 ```
 ##### Options
 - saveCookie - (default: false) stores the cookiejar after login
@@ -18,18 +22,18 @@ var apiClient = new futapi([options]);
     
   function twoFactorCodeCb(next){
       /* send your authentication code with the "next" method */
-      next("123456");
+      next("123456")
   }
 
     
     apiClient.login("username","password","secret", "platform"
-    	twoFactorCodeCb,
-    	function(error,response){
-    	if(error) {
-        	return console.log("Unable to login.");
+        twoFactorCodeCb,
+        function(error,response){
+        if(error) {
+            return console.log("Unable to login.")
         }
-    	console.log("logged in.");
-    });
+        console.log("logged in.")
+    })
 ```
 * platform: "ps3","ps4","pc","x360","xone"
 
@@ -37,23 +41,23 @@ var apiClient = new futapi([options]);
 
 
 ```javascript
-  apiClient.getCredits(function(error, response){ });
+  apiClient.getCredits(function(error, response){ })
 ```
 * response: Object
-	* credits: number
-	* bidTokens: ??
-	* currencies: []
+    * credits: number
+    * bidTokens: ??
+    * currencies: []
         * name: string
         * funds: number
         * finalFunds: number
-	* unopenedPacks: Object
+    * unopenedPacks: Object
         * preOrderPacks: number
         * recoveredPacks: number
 
 
 ## Pilesize
 ```javascript
-  apiClient.getPilesize(function(error, response){ });
+  apiClient.getPilesize(function(error, response){ })
 ```
 * response: Object
     * entries: []
@@ -62,7 +66,7 @@ var apiClient = new futapi([options]);
 
 ## Tradepile
 ```javascript
-  apiClient.getTradepile(function(error, response){ });
+  apiClient.getTradepile(function(error, response){ })
 ```
 * response: Object
     * credits: number
@@ -130,7 +134,7 @@ var apiClient = new futapi([options]);
 
 ## Relist tradepile
 ```javascript
-  apiClient.relist(function(error, response){ });
+  apiClient.relist(function(error, response){ })
 ```
 * response: Object
     * tradeIdList: []
@@ -138,51 +142,51 @@ var apiClient = new futapi([options]);
         
 ## Watchlist
 ```javascript
-  apiClient.getWatchlist(function(error, response){ });
+  apiClient.getWatchlist(function(error, response){ })
 ```
 
 * response: -> see tradepile response
 
 ## Transfermarket
 ```javascript
-  apiClient.search({type: "player", lev: "gold", maskedDefId: 183907, pos: "CB" }, function(error, response){ });
+  apiClient.search({type: "player", lev: "gold", maskedDefId: 183907, pos: "CB" }, function(error, response){ })
 ```
 
 * filter 
     * searchFilterBase
-        * type: string 		-> player, training, development
-        * start: number 	-> page
-        * num: number 		-> items per page
-        * micr: number		-> min bid
-        * macr: number		-> max bid
-        * minb: number		-> min buy
-        * maxb: number		-> max buy
-        * lev: string		-> bronze, silver, gold
+        * type: string      -> player, training, development
+        * start: number     -> page
+        * num: number       -> items per page
+        * micr: number      -> min bid
+        * macr: number      -> max bid
+        * minb: number      -> min buy
+        * maxb: number      -> max buy
+        * lev: string       -> bronze, silver, gold
         
     * playerSearchFilter extends searchFilterBase
-        * maskedDefId: number 	-> baseId
-        * rare: string 		-> SP
-        * zone: string 		-> defence, midfield, attacker
-        * pos: string		-> GK, CB, LB, RB, ...
-        * nat: number		-> nationId
-        * leag: number		-> leagueId
-        * team: number		-> teamId
-        * playStyle: number	-> playerStyleId
+        * maskedDefId: number   -> baseId
+        * rare: string      -> SP
+        * zone: string      -> defence, midfield, attacker
+        * pos: string       -> GK, CB, LB, RB, ...
+        * nat: number       -> nationId
+        * leag: number      -> leagueId
+        * team: number      -> teamId
+        * playStyle: number -> playerStyleId
         
     * consumableFilter extends searchFilterBase
-        * cat: string		-> playerTraining, GKTraining, position, playStyle, managerLeagueModifier, contract, fitness, healing
+        * cat: string       -> playerTraining, GKTraining, position, playStyle, managerLeagueModifier, contract, fitness, healing
         
     * positionChangeSearchFilter extends consumableFilter
-        * pos: string		-> LB-LWB (OLD-NEW)
+        * pos: string       -> LB-LWB (OLD-NEW)
         
     * playerStyleSearchFilter extends consumableFilter
-        * playStyle: number	-> playerStyleId
+        * playStyle: number -> playerStyleId
     
 * response: -> see tradepile response
 
 ## Place bid
 ```javascript
-  apiClient.placeBid(tradeId, coins, function(error, response){ });
+  apiClient.placeBid(tradeId, coins, function(error, response){ })
 ```
 
 * tradId: number
@@ -191,7 +195,7 @@ var apiClient = new futapi([options]);
 
 ## List item
 ```javascript
-  apiClient.listItem(itemDataId, startingBid, buyNowPrice, duration, function(error, response){ });
+  apiClient.listItem(itemDataId, startingBid, buyNowPrice, duration, function(error, response){ })
 ```
 * itemDataId: number -> itemData.id
 * startingBid: number
@@ -199,36 +203,36 @@ var apiClient = new futapi([options]);
 * duration: number -> seconds -> valid values 3600 = 1h, 10800 = 3h, 21600 = 6h, 43200 = 12h, 86400 = 1d, 259200 = 3d
 
 * response: 
-	* id: number
-	
+    * id: number
+    
 ## Auction status
 ```javascript
-  apiClient.getStatus([tradeIds], function(error, response){ });
+  apiClient.getStatus([tradeIds], function(error, response){ })
 ```
 * tradeIds: number[] -> tradeId
 * response: -> see tradepile response
 
 ## Add to watchlist
 ```javascript
-  apiClient.addToWatchlist(tradeId, function(error){ });
+  apiClient.addToWatchlist(tradeId, function(error){ })
 ```
 * tradeId: number -> tradeId
 
 ## remove from tradepile
 ```javascript
-  apiClient.removeFromTradepile(tradeId, function(error){ });
+  apiClient.removeFromTradepile(tradeId, function(error){ })
 ```
 * tradeId: number -> tradeId
 
 ## remove from watchlist
 ```javascript
-  apiClient.removeFromWatchlist(tradeId, function(error){ });
+  apiClient.removeFromWatchlist(tradeId, function(error){ })
 ```
 * tradeId: number -> tradeId
 
 ## send to tradepile
 ```javascript
-  apiClient.sendToTradepile(itemDataId, function(error, response){ });
+  apiClient.sendToTradepile(itemDataId, function(error, response){ })
 ```
 * itemDataId: number -> itemData.id
 * response: Object
@@ -239,7 +243,7 @@ var apiClient = new futapi([options]);
         
 ## send to tradepile
 ```javascript
-  apiClient.sendToClub(itemDataId, function(error, response){ });
+  apiClient.sendToClub(itemDataId, function(error, response){ })
 ```
 * itemDataId: number -> itemData.id
 * response: Object
@@ -250,7 +254,7 @@ var apiClient = new futapi([options]);
         
 ## Quick sell
 ```javascript
-  apiClient.quickSell(itemDataId, function(error, response){ });
+  apiClient.quickSell(itemDataId, function(error, response){ })
 ```
 * itemDataId: number -> itemData.id
 * response: Object
@@ -262,24 +266,24 @@ var apiClient = new futapi([options]);
 
 ### Validate price/coins
 ```javascript
-    futapi.isPriceValid(coins);
+    futapi.isPriceValid(coins)
 ```
 returns true or false
 
 ### Calculate valid price/coins
 ```javascript
-    futapi.calculateValidPrice(coins);
+    futapi.calculateValidPrice(coins)
 ```
 returns valid coins amount
 
 ### Calculate next lower price/coins
 ```javascript
-    futapi.calculateNextLowerPrice(coins);
+    futapi.calculateNextLowerPrice(coins)
 ```
 returns next lower coins after calculating valid price
 
 ### Calculate next higher price/coins
 ```javascript
-    futapi.calculateNextHigherPrice(coins);
+    futapi.calculateNextHigherPrice(coins)
 ```
 returns next higher coins after calculating valid price
