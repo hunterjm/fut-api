@@ -28,6 +28,7 @@ var apiClient = new futapi([options])
     
     apiClient.login("username","password","secret", "platform"
         twoFactorCodeCb,
+        captchaCb,
         function(error,response){
         if(error) {
             return console.log("Unable to login.")
