@@ -40,8 +40,8 @@ var futapi = function (options) {
     login.setCookieJarJSON(json)
   }
 
-  FutApi.prototype.login = function (email, password, secret, platform, tfCodeCb, loginCb) {
-    login.login(email, password, secret, platform, tfCodeCb, function (error, result) {
+  FutApi.prototype.login = function (email, password, secret, platform, tfCodeCb, captchaCb, loginCb) {
+    login.login(email, password, secret, platform, tfCodeCb, captchaCb, function (error, result) {
       if (error) loginCb(error)
       else {
         loginResponse = result
