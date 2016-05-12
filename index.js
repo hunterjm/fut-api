@@ -214,7 +214,12 @@ var futapi = function (options) {
         if (error) return cb(error, null)
         if (response.statusCode === 401) return cb(new Error(response.statusMessage), null)
         if (response.statusCode === 404) return cb(new Error(response.statusMessage), null)
-        if (utils.isApiError(body)) cb(new Error(JSON.stringify(body)), null)
+        // API error
+        if (utils.isApiError(body)) {
+          let err = new Error(JSON.stringify(body))
+          err.futApiStatusCode = body.code
+          cb(err, null)
+        }
         cb(null, body)
       }
     )
