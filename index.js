@@ -216,6 +216,7 @@ var futapi = function (options) {
         if (response.statusCode === 404) return cb(new Error(response.statusMessage), null)
         // API error
         if (utils.isApiError(body)) {
+          body.request = {url, options: defaultOptions}
           let err = new Error(JSON.stringify(body))
           err.futApiStatusCode = body.code
           cb(err, null)
