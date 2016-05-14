@@ -218,7 +218,7 @@ var futapi = function (options) {
         if (utils.isApiError(body)) {
           body.request = {url, options: defaultOptions}
           let err = new Error(JSON.stringify(body))
-          err.futApiStatusCode = body.code
+          err.futApiStatusCode = Number(body.code)
           cb(err, null)
         }
         cb(null, body)
