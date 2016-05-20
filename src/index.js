@@ -5,7 +5,7 @@ import assert from 'assert'
 import utils from './lib/utils'
 import Login from './lib/login'
 import _ from 'underscore'
-import Methods from './lib/methods'
+import methods from './lib/methods'
 
 const login = Promise.promisifyAll(new Login())
 
@@ -80,7 +80,7 @@ let Fut = class Fut {
   }
 }
 
-Object.assign(Fut.prototype, Methods.prototype)
+Object.assign(Fut.prototype, methods)
 export default Fut
 
 // futapi.isPriceValid = utils.isPriceValid
