@@ -278,7 +278,7 @@ module.exports = function (options) {
 
       if (loginResponse.sessionData.sid) return phishing()
 
-      loginDetails.loginCb(new Error('Unknown response. Unable to login.'))
+      loginDetails.loginCb(new Error(`Unknown response. Unable to login. ${response.statusCode} ${JSON.stringify(body)}`))
     })
   }
 
