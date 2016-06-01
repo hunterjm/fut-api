@@ -1,11 +1,15 @@
+// @flow weak
+
 import urls from './urls'
 import utils from './utils'
 import _ from 'underscore'
 
 export default class Methods {
+  api: Function;
+
   getCredits = () => this.api(urls.api.credits)
 
-  getTradepile = () => this.api(urls.api.getTradepile)
+  getTradepile = () => this.api(urls.api.tradepile)
 
   getWatchlist = () => this.api(urls.api.watchlist)
 
@@ -24,8 +28,8 @@ export default class Methods {
       num: 16
     }
     filter = _.extend(defaultFilter, filter)
-    if (defaultFilter.maskedDefId) defaultFilter.maskedDefId = utils.getBaseId(defaultFilter.maskedDefId)
-    let url = urls.api.transfermarket + toUrlParameters(defaultFilter)
+    if (filter.maskedDefId) filter.maskedDefId = utils.getBaseId(filter.maskedDefId)
+    let url = urls.api.transfermarket + toUrlParameters(filter)
     return this.api(url)
   }
 
