@@ -23,6 +23,7 @@ let Fut = class Fut extends Methods {
    * @param  {Boolean} options.loadVariable   [description]
    * @param  {Number}  options.RPM            [description]
    * @param  {Number}  options.minDelay       [description]
+   * @param  {[String]} options.proxy       [description]
    * @return {[type]}                         [description]
    */
   constructor (options) {
@@ -38,6 +39,7 @@ let Fut = class Fut extends Methods {
     }
 
     this.options = {}
+    this.isReady = false // instance will be ready after we called _init func
     Object.assign(this.options, defaultOptions, options)
   }
 
@@ -56,6 +58,9 @@ let Fut = class Fut extends Methods {
     if (cookie) {
       login.setCookieJarJSON(cookie)
     }
+
+    let minuteLimitStartedAt = await this.loadVariable('minuteLimitStartedAt')
+    this.minuteLimitStartedAt = minuteLimitStartedAt || moment()
   }
 
   async login () {
@@ -63,9 +68,20 @@ let Fut = class Fut extends Methods {
     let loginResponse = await login.loginAsync(this.options.email, this.options.password, this.options.secret, this.options.platform, this.options.tfAuthHandler, this.options.captchaHandler)
     await this.saveVariable('cookie', login.getCookieJarJSON())
     this.rawApi = Promise.promisify(loginResponse.apiRequest, loginResponse)
+
+    // init proxy
+    if (this.options.proxy) {
+      this.rawApi.defaults({proxy: this.options.proxy})
+    }
+    this.isReady = true
   }
 
   async api (url, options) {
+    if (!this.isReady) throw new Error('Fut instance is not ready yet, run login first!')
+
+    // limit handler
+    await this._limitHandler()
+
     var defaultOptions = {
       xHttpMethod: 'GET',
       headers: {}
@@ -97,6 +113,7 @@ let Fut = class Fut extends Methods {
     // seconds
     let sinceLastRequest = moment().diff(this.lastRequestAt)
     if (sinceLastRequest < this.options.minDelay) {
+      console.log('Waiting on second limit ...')
       await Promise.delay(this.options.minDelay - sinceLastRequest)
     }
 
@@ -108,9 +125,10 @@ let Fut = class Fut extends Methods {
       this.requestsThisMinute++
     }
 
-    if (this.requestsThisMinute >= this.options.RPM) {
+    if ((this.requestsThisMinute >= this.options.RPM) && this.options.RPM !== 0) {
       let resetsAt = this.minuteLimitStartedAt.add(1, 'minute')
       let needsToReset = resetsAt.diff(moment())
+      console.log(`Waiting on RPM ... ${needsToReset}`)
       await Promise.delay(needsToReset)
     }
 
