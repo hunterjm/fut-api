@@ -273,6 +273,7 @@ module.exports = function (options) {
 
     defaultRequest.post(urls.login.session, { body: data }, function (error, response, body) {
       if (error) return loginDetails.loginCb(error)
+      if (response.statusCode !== 200) return loginDetails.loginCb(new Error(`Unknown response. Unable to login. ${response.statusCode} ${JSON.stringify(body)}`))
 
       loginResponse.sessionData = body
 
