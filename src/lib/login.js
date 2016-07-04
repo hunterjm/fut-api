@@ -7,6 +7,7 @@ module.exports = function (options) {
   var urls = require('./urls')
   var CookieJar = require('tough-cookie').CookieJar
   var utils = require('./utils')
+  const lodash = require('lodash')
 
   var defaultRequest = null
 
@@ -22,6 +23,8 @@ module.exports = function (options) {
   }
 
   var jar = request.jar()
+
+  var loginDefaults = {}
 
   var Login = function () {}
 
@@ -52,7 +55,7 @@ module.exports = function (options) {
       captchaCb: captchaCb
     }
 
-    defaultRequest = request.defaults({
+    let requestConfigObj = {
       jar: jar,
       followAllRedirects: true,
       gzip: true,
@@ -65,7 +68,10 @@ module.exports = function (options) {
         'DNT': '1',
         'Cache-Control': 'no-cache'
       }
-    })
+    }
+
+    defaultRequest = request.defaults(requestConfigObj)
+    lodash.merge(loginDefaults, requestConfigObj)
 
     getMain()
   }
@@ -76,6 +82,10 @@ module.exports = function (options) {
 
   Login.prototype.setCookieJarJSON = function (json) {
     jar._jar = CookieJar.deserializeSync(json)
+  }
+
+  Login.prototype.getLoginDefaults = function () {
+    return loginDefaults
   }
 
   Login.prototype.getCaptcha = function (cb) {
@@ -210,7 +220,7 @@ module.exports = function (options) {
   }
 
   function getShards () {
-    defaultRequest = defaultRequest.defaults({
+    let requestConfigObj = {
       json: true,
       headers: {
         'Easw-Session-Data-Nucleus-Id': loginResponse.nucleusId,
@@ -219,7 +229,10 @@ module.exports = function (options) {
         'X-Requested-With': 'XMLHttpRequest',
         'Referer': urls.referer
       }
-    })
+    }
+
+    defaultRequest = defaultRequest.defaults(requestConfigObj)
+    lodash.merge(loginDefaults, requestConfigObj)
 
     defaultRequest.get(urls.login.shards, function (error, responsse, body) {
       if (error) return loginDetails.loginCb(error)
@@ -239,11 +252,14 @@ module.exports = function (options) {
 
     if (!loginResponse.shard) return loginDetails.loginCb(new Error('Unable to find shardInfo.'))
 
-    defaultRequest = defaultRequest.defaults({
+    let requestConfigObj = {
       headers: {
         'X-UT-Route': 'https://' + loginResponse.shard.clientFacingIpPort
       }
-    })
+    }
+
+    defaultRequest = defaultRequest.defaults(requestConfigObj)
+    lodash.merge(loginDefaults, requestConfigObj)
 
     defaultRequest.get(urls.login.accounts, function (error, response, body) {
       if (error) return loginDetails.loginCb(error)
@@ -284,18 +300,20 @@ module.exports = function (options) {
   }
 
   function phishing () {
-    defaultRequest = defaultRequest.defaults({
+    let requestConfigObj = {
       headers: {
         'X-UT-SID': loginResponse.sessionData.sid
       }
-    })
+    }
+    defaultRequest = defaultRequest.defaults(requestConfigObj)
+    lodash.merge(loginDefaults, requestConfigObj)
 
     defaultRequest.get(urls.login.question, function (error, response, body) {
       if (error) return loginDetails.loginCb(error)
 
       if (utils.isApiMessage(body) && body.token) {
         loginResponse.token = body.token
-        loginResponse.apiRequest = defaultRequest.defaults({
+        let requestConfigObj = {
           baseUrl: 'https://' + loginResponse.sessionData.ipPort.split(':')[0],
           headers: {
             'X-UT-PHISHING-TOKEN': loginResponse.token,
@@ -303,7 +321,9 @@ module.exports = function (options) {
             'X-UT-Route': 'https://' + loginResponse.sessionData.ipPort.split(':')[0],
             'x-flash-version': '20,0,0,272'
           }
-        })
+        }
+        loginResponse.apiRequest = defaultRequest.defaults(requestConfigObj)
+        lodash.merge(loginDefaults, requestConfigObj)
 
         return loginDetails.loginCb(null, loginResponse)
       }
@@ -366,7 +386,7 @@ module.exports = function (options) {
 
       if (!loginResponse.token) return loginDetails.loginCb(new Error('Unknown response. Unable to login.'))
 
-      loginResponse.apiRequest = defaultRequest.defaults({
+      let requestConfigObj = {
         baseUrl: 'https://' + loginResponse.sessionData.ipPort.split(':')[0],
         headers: {
           'X-UT-PHISHING-TOKEN': loginResponse.token,
@@ -375,7 +395,9 @@ module.exports = function (options) {
           'x-flash-version': '20,0,0,272',
           'Accept': 'application/json'
         }
-      })
+      }
+      loginResponse.apiRequest = defaultRequest.defaults(requestConfigObj)
+      lodash.merge(loginDefaults, requestConfigObj)
 
       loginDetails.loginCb(null, loginResponse)
     })

@@ -7,6 +7,7 @@ import Login from './lib/login'
 import _ from 'underscore'
 import Methods from './lib/methods'
 import moment from 'moment'
+import request from 'request'
 
 const login = Promise.promisifyAll(new Login())
 
@@ -73,6 +74,23 @@ let Fut = class Fut extends Methods {
     if (this.options.proxy) {
       this.rawApi.defaults({proxy: this.options.proxy})
     }
+
+    let loginDefaults = _.omit(login.getLoginDefaults(), 'jar')
+    console.log('login defaults', loginDefaults)
+    await this.saveVariable('loginDefaults', loginDefaults)
+    this.isReady = true
+  }
+
+  async loginCached () {
+    let loginDefaults = await this.loadVariable('loginDefaults')
+    if (!loginDefaults) {
+      throw new Error('Login defaults are not saved. Use classic login first!')
+    }
+    let rawApi = request.defaults(loginDefaults)
+    if (this.options.proxy) {
+      rawApi.defaults({proxy: this.options.proxy})
+    }
+    this.rawApi = Promise.promisify(rawApi)
     this.isReady = true
   }
 
