@@ -1,6 +1,6 @@
 {
   "name": "fut",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "fifa 16 web-app api",
   "main": "./dist/index.js",
   "scripts": {
@@ -47,6 +47,7 @@
     "babel-preset-stage-0": "^6.5.0",
     "babel-preset-stage-3": "^6.5.0",
     "flow-bin": "^0.26.0",
+    "mongoose": "^4.5.9",
     "standard": "^7.0.1"
   },
   "standard": {

@@ -68,16 +68,16 @@ let Fut = class Fut extends Methods {
     await this._init()
     let loginResponse = await login.loginAsync(this.options.email, this.options.password, this.options.secret, this.options.platform, this.options.tfAuthHandler, this.options.captchaHandler)
     await this.saveVariable('cookie', login.getCookieJarJSON())
-    this.rawApi = Promise.promisify(loginResponse.apiRequest, loginResponse)
+    let rawApi = loginResponse.apiRequest
 
     // init proxy
     if (this.options.proxy) {
-      this.rawApi.defaults({proxy: this.options.proxy})
+      rawApi = rawApi.defaults({proxy: this.options.proxy})
     }
 
     let loginDefaults = _.omit(login.getLoginDefaults(), 'jar')
-    console.log('login defaults', loginDefaults)
     await this.saveVariable('loginDefaults', loginDefaults)
+    this.rawApi = Promise.promisify(rawApi)
     this.isReady = true
   }
 
@@ -88,7 +88,7 @@ let Fut = class Fut extends Methods {
     }
     let rawApi = request.defaults(loginDefaults)
     if (this.options.proxy) {
-      rawApi.defaults({proxy: this.options.proxy})
+      rawApi = rawApi.defaults({proxy: this.options.proxy})
     }
     this.rawApi = Promise.promisify(rawApi)
     this.isReady = true
