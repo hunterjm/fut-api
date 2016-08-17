@@ -163,6 +163,8 @@ module.exports = function (options) {
 
       if (body.indexOf('<title>Set Up an App Authenticator</title>') > 0) return cancelLoginVerificationUpdate(response.request.href)
 
+      if (body.indexOf('<title>Account Update</title>') > 0) return acceptAccountUpdate(response.request.href)
+
       if (body.indexOf('<title>Login Verification</title>') > 0) {
         loginDetails.tfCodeCb(function (tfCode) {
           return sendTwoFactorCode(response.request.href, tfCode)
@@ -192,6 +194,44 @@ module.exports = function (options) {
       if (body.indexOf('<title>Login Verification</title>') > 0) return loginDetails.loginCb(new Error('Wrong two factor code.'))
 
       loginDetails.loginCb(new Error('Unknown response. Unable to login.'))
+    })
+  }
+
+  function acceptAccountUpdate (url) {
+    defaultRequest.post(url, {
+      form: {
+        '_eventId': 'submit'
+      }
+    }, function (error, response, body) {
+      if (error) return loginDetails.loginCb(error)
+
+      if (body.indexOf('<title>Login Verification</title>') > 0) return chooseEmailSending(response.request.href)
+
+      loginDetails.loginCb(new Error('Unknown response. Unable to login. At acceptAccountUpdate'))
+    })
+  }
+
+  function chooseEmailSending (url) {
+    defaultRequest.post(url, {
+      form: {
+        tfa_type: '',
+        twofactorType: 'EMAIL',
+        country: 0,
+        phoneNumber: '',
+        _eventId: 'submit',
+        appleDevice: 'IPHONE'
+      }
+    }, function (error, response, body) {
+      if (error) return loginDetails.loginCb(error)
+
+      if (body.indexOf('<title>Login Verification</title>') > 0) {
+        loginDetails.tfCodeCb(function (tfCode) {
+          return sendTwoFactorCode(response.request.href, tfCode)
+        })
+        return
+      }
+
+      loginDetails.loginCb(new Error('Unknown response. Unable to login. At chooseEmailSending'))
     })
   }
 
