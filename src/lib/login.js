@@ -385,7 +385,11 @@ module.exports = function (options) {
             })
           })
         })
-      } else loginDetails.loginCb(new Error(`Unknown response. Unable to login. response: ${JSON.stringify(body)}`))
+      } else {
+        let error = new Error(`Unknown response. Unable to login. response: ${JSON.stringify(body)}`)
+        error.futLoginError = body
+        loginDetails.loginCb(error)
+      }
     })
   }
 
