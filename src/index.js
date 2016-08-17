@@ -9,8 +9,6 @@ import Methods from './lib/methods'
 import moment from 'moment'
 import request from 'request'
 
-const login = Promise.promisifyAll(new Login())
-
 let Fut = class Fut extends Methods {
   /**
    * [constructor description]
@@ -42,6 +40,8 @@ let Fut = class Fut extends Methods {
     this.options = {}
     this.isReady = false // instance will be ready after we called _init func
     Object.assign(this.options, defaultOptions, options)
+
+    this.loginLib = Promise.promisifyAll(new Login({proxy: options.proxy}))
   }
 
   async loadVariable (key) {
@@ -57,7 +57,7 @@ let Fut = class Fut extends Methods {
   async _init () {
     let cookie = await this.loadVariable('cookie')
     if (cookie) {
-      login.setCookieJarJSON(cookie)
+      this.loginLib.setCookieJarJSON(cookie)
     }
 
     let minuteLimitStartedAt = await this.loadVariable('minuteLimitStartedAt')
@@ -66,16 +66,11 @@ let Fut = class Fut extends Methods {
 
   async login () {
     await this._init()
-    let loginResponse = await login.loginAsync(this.options.email, this.options.password, this.options.secret, this.options.platform, this.options.tfAuthHandler, this.options.captchaHandler)
-    await this.saveVariable('cookie', login.getCookieJarJSON())
+    let loginResponse = await this.loginLib.loginAsync(this.options.email, this.options.password, this.options.secret, this.options.platform, this.options.tfAuthHandler, this.options.captchaHandler)
+    await this.saveVariable('cookie', this.loginLib.getCookieJarJSON())
     let rawApi = loginResponse.apiRequest
 
-    // init proxy
-    if (this.options.proxy) {
-      rawApi = rawApi.defaults({proxy: this.options.proxy})
-    }
-
-    let loginDefaults = _.omit(login.getLoginDefaults(), 'jar')
+    let loginDefaults = _.omit(this.loginLib.getLoginDefaults(), 'jar')
     await this.saveVariable('loginDefaults', loginDefaults)
     this.rawApi = Promise.promisify(rawApi)
     this.isReady = true

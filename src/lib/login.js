@@ -70,6 +70,10 @@ module.exports = function (options) {
       }
     }
 
+    if (options.proxy) {
+      requestConfigObj.proxy = options.proxy
+    }
+
     defaultRequest = request.defaults(requestConfigObj)
     lodash.merge(loginDefaults, requestConfigObj)
 
