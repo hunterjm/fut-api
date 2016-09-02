@@ -29,7 +29,8 @@ var urls = {
     item: '/ut/game/fifa16/item',
     squadList: '/ut/game/fifa16/squad/list',
     squadDetails: '/ut/game/fifa16/squad/{0}',
-    sold: '/ut/game/fifa16/trade/sold'
+    sold: '/ut/game/fifa16/trade/sold',
+    unassigned: '/ut/game/fifa16/purchased/items'
   },
   resource: {
     player: ''

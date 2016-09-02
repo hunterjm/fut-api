@@ -21,6 +21,8 @@ export default class Methods {
 
   getSquadDetails = (squadId) => this.api(utils.format(urls.api.squadDetails, [squadId]))
 
+  getUnassigned = () => this.api(urls.api.unassigned)
+
   search = (filter) => {
     let defaultFilter = {
       type: 'player',
