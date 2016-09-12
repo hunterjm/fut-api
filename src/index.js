@@ -10,6 +10,11 @@ import moment from 'moment'
 import request from 'request'
 
 let Fut = class Fut extends Methods {
+  static isPriceValid = utils.isPriceValid;
+  static calculateValidPrice = utils.calculateValidPrice;
+  static calculateNextLowerPrice = utils.calculateNextLowerPrice;
+  static calculateNextHigherPrice = utils.calculateNextHigherPrice;
+  static getBaseId = utils.getBaseId;
   /**
    * [constructor description]
    * @param  {[type]}  options.email          [description]
@@ -150,12 +155,4 @@ let Fut = class Fut extends Methods {
   }
 }
 
-// Object.assign(Fut.prototype, Methods.prototype)
 module.exports = Fut
-
-// futapi.isPriceValid = utils.isPriceValid
-// futapi.calculateValidPrice = utils.calculateValidPrice
-// futapi.calculateNextLowerPrice = utils.calculateNextLowerPrice
-// futapi.calculateNextHigherPrice = utils.calculateNextHigherPrice
-// futapi.getBaseId = utils.getBaseId
-// module.exports = futapi
