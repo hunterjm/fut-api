@@ -4,6 +4,7 @@ import cheerio from 'cheerio'
 import assert from 'assert'
 import urlModule from 'url'
 import _ from 'underscore'
+import eaHasher from './eaHasher'
 
 const crypto = Promise.promisifyAll(require('crypto'))
 
@@ -32,6 +33,7 @@ export default class MobileLogin {
     assert(options.platform, 'Platform is required')
     assert(options.tfCodeHandler, 'tfCodeHandler is required')
 
+    options.secret = eaHasher(options.secret)
     const defaultOptions = {
       gameSku: getGameSku(options.platform),
       platform: getPlatform(options.platform)
@@ -48,8 +50,9 @@ export default class MobileLogin {
   }
 
   async getLogin () {
-    const machineKey = await generateMachineKey()
-    const url = 'https://accounts.ea.com/connect/auth?client_id=FIFA-16-MOBILE-COMPANION&response_type=code&display=web2/login&scope=basic.identity+offline+signin&locale=en_US&prompt=login&machineProfileKey=' + machineKey
+    // We will use machine key later at getNucleusCode
+    this.machineKey = await generateMachineKey()
+    const url = 'https://accounts.ea.com/connect/auth?client_id=FIFA-16-MOBILE-COMPANION&response_type=code&display=web2/login&scope=basic.identity+offline+signin&locale=en_US&prompt=login&machineProfileKey=' + this.machineKey
     console.log(url)
     const response = await defaultRequest.getAsync(url)
 
@@ -83,7 +86,7 @@ export default class MobileLogin {
       console.log(response.statusCode, response.body)
       throw new Error(`Unknow response at 'postLogin' title was: ${title}`)
     }
-    console.log(response.body)
+    // console.log(response.body)
     return this.postLoginRedirect(response)
   }
 
@@ -129,7 +132,7 @@ export default class MobileLogin {
         'appDevice': 'IPHONE'
       },
       followRedirect: (response) => {
-        console.log(126, response.headers)
+        // console.log(126, response.headers)
         if (response.headers.location.includes('code=')) {
           try {
             code = urlModule.parse(response.headers.location, true).query.code
@@ -156,18 +159,54 @@ export default class MobileLogin {
     let uselessResp = await defaultRequest.getAsync(url1)
     console.log(157, uselessResp.body)
 
-    await this.getNucleus(token)
-    await this.getSid(token)
-    // await this.getShards()
+    const nucleusUserId = await this.getPid(token)
+    const sidCode = await this.getSidCode(token)
+    const sidCode2 = await this.getSidCode(token)
+    // We will get the api url after shards
+    await this.getShards()
+    await this.getUserAccounts(nucleusUserId)
+    const powSessionId = await this.getPowSid(sidCode)
+    const nucleusPersonaId = await this.getNucleusPersonaId(nucleusUserId, powSessionId)
+    const sid = await this.getSid(sidCode2, nucleusPersonaId)
+
+    this.api = Promise.promisifyAll(defaultRequest.defaults({
+      baseUrl: `${this.apiUrl}/`,
+      json: true,
+      headers: {
+        'X-UT-SID': sid,
+        'Easw-Session-Data-Nucleus-Id': nucleusUserId
+      }
+    }))
+    const phisingToken = await this.validate()
+
+    this.api = Promise.promisifyAll(this.api.defaults({
+      headers: {
+        'X-UT-PHISHING-TOKEN': phisingToken,
+        'X-HTTP-Method-Override': 'GET'
+      }
+    }))
+    const lol = await this.api.postAsync('/ut/game/fifa16/transfermarket?start=0&num=16&type=development&cat=contract&_=1474098890655')
+    console.log(189, lol)
     // console.log(this)
   }
 
-  async getNucleus (token) {
+  async getSidCode (token) {
+    // https://accounts.ea.com/connect/auth?client_id=FOS-SERVER&redirect_uri=nucleus:rest&response_type=code&access_token=QVQxOjEuMDozLjA6NjA6b3lXeGg1dXFSd2t0VGVPcGFoaVlzMW1pRVhyZ1ZOT3F0UWo6MTYzMzg6bmRxYTQ&machineProfileKey=EEA58055-E4E8-42E6-B89D-DFFBBD37AF57
+    const url = `https://accounts.ea.com/connect/auth?client_id=FOS-SERVER&redirect_uri=nucleus:rest&response_type=code&access_token=${token}&machineProfileKey=${this.machineKey}`
+    const {body} = await defaultRequest.getAsync(url, {json: true})
+    console.log(171, body)
+    return body.code
+  }
+
+  async getPid (token) {
     const url = 'https://gateway.ea.com/proxy/identity/pids/me'
-    console.log(167, jar)
-    const response = await defaultRequest.getAsync(url, {json: true, headers: {Authorization: `Bearer ${token}`}})
+    // console.log(167, jar)
+    const response = await defaultRequest.getAsync(url, {json: true, headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: '*/*'
+    }})
     console.log(169, response.body)
-    this.nucleus = response.body.externalRefValue
+    return response.body.pid.externalRefValue
   }
 
   async getShards () {
@@ -175,18 +214,43 @@ export default class MobileLogin {
     const timestamp = new Date().getTime()
     const url = `https://utas.mob.v5.fut.ea.com/ut/shards/v2?_=${timestamp}`
     const {body} = await defaultRequest.getAsync(url, {
+      json: true,
       headers: {
         'Easw-Session-Data-Nucleus-Id': this.nucleus
       }
     })
+    console.log(195, body)
     const shard = _.find(body.shardInfo, (shard) => {
       return shard.skus.includes(this.options.gameSku)
     })
-    this.apiUrl = shard.clientFacingIpPort
+    this.apiUrl = 'https://' + shard.clientFacingIpPort.slice(0, -4)
   }
 
-  async getSid (token) {
-    const form = {
+  async getUserAccounts (nucleusUserId) {
+    const timestamp = new Date().getTime()
+    const url = `${this.apiUrl}/ut/game/fifa16/user/accountinfo?sku=FUT16IOS&_=${timestamp}`
+    // console.log(167, jar)
+    const response = await defaultRequest.getAsync(url, {json: true, headers: {
+      'Easw-Session-Data-Nucleus-Id': nucleusUserId,
+      'X-UT-SID': ''
+    }})
+    console.log(211, response.body)
+  }
+
+  async getNucleusPersonaId (nucleusUserId, powSessionId) {
+    const timestamp = new Date().getTime()
+    const url = `https://pas.mob.v5.easfc.ea.com:8095/pow/user/self/tiergp/NucleusId/tiertp/${nucleusUserId}?offset=0&count=50&_=${timestamp}`
+    const {body} = await defaultRequest.getAsync(url, {json: true, headers: {
+      'Easw-Session-Data-Nucleus-Id': nucleusUserId,
+      'X-POW-SID': powSessionId
+    }})
+
+    console.log(226, body)
+    return _.findWhere(body.userData.data, {sku: this.options.gameSku}).nucPersId
+  }
+
+  async getSid (code, nucleusPersonaId) {
+    const requestBody = {
       isReadOnly: true,
       sku: 'FUT16IOS',
       clientVersion: 20,
@@ -194,16 +258,69 @@ export default class MobileLogin {
       method: 'authcode',
       priorityLevel: 4,
       identification: {
-        authCode: token,
+        authCode: code,
+        redirectUrl: 'nucleus:rest'
+      },
+      nucleusPersonaId,
+      gameSku: this.options.gameSku
+    }
+    // 1474229595686
+    const timestamp = new Date().getTime()
+    const url = `${this.apiUrl}/ut/auth?timestamp=${timestamp}`
+    console.log(220, url)
+    const response = await defaultRequest.postAsync(url, {
+      body: requestBody,
+      json: true,
+      headers: {
+        'X-UT-SID': '',
+        'X-POW-SID': '',
+        Accept: 'text/plain, */*; q=0.01',
+        Origin: 'file://'
+      }
+    })
+    // console.log(response)
+    // console.log(jar)
+    // console.log(response.request.headers)
+    console.log(206, response.statusCode, response.body)
+    return response.body.sid
+  }
+
+  async getPowSid (code) {
+    const requestBody = {
+      isReadOnly: true,
+      sku: 'FUT16IOS',
+      clientVersion: 20,
+      locale: 'en-US',
+      method: 'authcode',
+      priorityLevel: 4,
+      identification: {
+        authCode: code,
         redirectUrl: 'nucleus:rest'
       }
     }
     // 1474229595686
     const timestamp = new Date().getTime()
     const url = `https://pas.mob.v5.easfc.ea.com:8095/pow/auth?timestamp=${timestamp}`
-    const {body} = await defaultRequest.postAsync(url, {form})
-    console.log(206, body)
-    this.sid = body.sid
+    const response = await defaultRequest.postAsync(url, {
+      body: requestBody,
+      json: true
+      // headers: {
+      //   'X-UT-SID': '',
+      //   'X-POW-SID': '',
+      //   Accept: 'text/plain, */*; q=0.01',
+      //   Origin: 'file://'
+      // }
+    })
+    console.log(206, response.body)
+    return response.body.sid
+    // return powSid
+  }
+
+  async validate () {
+    console.log(312, this.options.secret)
+    const uri = `/ut/game/fifa16/phishing/validate?answer=${this.options.secret}`
+    const {body} = await this.api.postAsync(uri, {body: this.options.secret})
+    return body.token
   }
 }
 
