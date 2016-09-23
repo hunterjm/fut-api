@@ -136,6 +136,8 @@ module.exports = function (options) {
     defaultRequest.get(urls.login.main, function (error, response, body) {
       if (error) return loginDetails.loginCb(error)
 
+      if (body.indexOf('<title>FIFA Football | Football Club | EA SPORTS</title>') > 0) return getNucleus()
+
       if (body.indexOf('<title>FIFA Football | FUT Web App | EA SPORTS</title>') > 0) return getNucleus()
 
       if (body.indexOf('<title>Log In</title>') > 0) return loginForm(response.request.href)
