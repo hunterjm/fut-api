@@ -4,6 +4,7 @@ import Promise from 'bluebird'
 import assert from 'assert'
 import utils from './lib/utils'
 import Login from './lib/login'
+import MobileLogin from './lib/mobile-login'
 import _ from 'underscore'
 import Methods from './lib/methods'
 import moment from 'moment'
@@ -27,7 +28,8 @@ let Fut = class Fut extends Methods {
    * @param  {Boolean} options.loadVariable   [description]
    * @param  {Number}  options.RPM            [description]
    * @param  {Number}  options.minDelay       [description]
-   * @param  {[String]} options.proxy       [description]
+   * @param  {[String]} options.proxy         [description]
+   * @param  {[String]} options.loginType     [description]
    * @return {[type]}                         [description]
    */
   constructor (options) {
@@ -39,14 +41,22 @@ let Fut = class Fut extends Methods {
 
     let defaultOptions = {
       RPM: 0,
-      minDelay: 0
+      minDelay: 0,
+      loginType: 'web'
     }
 
     this.options = {}
     this.isReady = false // instance will be ready after we called _init func
     Object.assign(this.options, defaultOptions, options)
 
-    this.loginLib = Promise.promisifyAll(new Login({proxy: options.proxy}))
+    if (this.options.loginType === 'web') {
+      this.loginLib = Promise.promisifyAll(new Login({proxy: options.proxy}))
+      this.loginLib.login = this.loginLib.loginAsync
+    } else if (this.options.loginType === 'mobile') {
+      this.loginLib = new MobileLogin({...options, tfCodeHandler: options.tfAuthHandler})
+    } else {
+      throw new Error(`Unknown loginType ${this.options.loginType}`)
+    }
   }
 
   async loadVariable (key) {
@@ -71,13 +81,13 @@ let Fut = class Fut extends Methods {
 
   async login () {
     await this._init()
-    let loginResponse = await this.loginLib.loginAsync(this.options.email, this.options.password, this.options.secret, this.options.platform, this.options.tfAuthHandler, this.options.captchaHandler)
+    let loginResponse = await this.loginLib.login(this.options.email, this.options.password, this.options.secret, this.options.platform, this.options.tfAuthHandler, this.options.captchaHandler)
     await this.saveVariable('cookie', this.loginLib.getCookieJarJSON())
-    let rawApi = loginResponse.apiRequest
+    this.rawApi = loginResponse.apiRequest
 
     let loginDefaults = _.omit(this.loginLib.getLoginDefaults(), 'jar')
     await this.saveVariable('loginDefaults', loginDefaults)
-    this.rawApi = Promise.promisify(rawApi)
+    if (this.options.loginType === 'web') this.rawApi = Promise.promisify(this.rawApi, this)
     this.isReady = true
   }
 
@@ -90,7 +100,7 @@ let Fut = class Fut extends Methods {
     if (this.options.proxy) {
       rawApi = rawApi.defaults({proxy: this.options.proxy})
     }
-    this.rawApi = Promise.promisify(rawApi)
+    this.rawApi = Promise.promisify(rawApi, this)
     this.isReady = true
   }
 
