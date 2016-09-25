@@ -5,6 +5,7 @@ const Fut = require('fut')
 const Promise = require('bluebird')
 const co = require('co')
 const storage = require('node-persist')
+const fs = Promise.promisifyAll(require('fs'))
 storage.initSync()
 
 var rl = readline.createInterface({
@@ -21,13 +22,13 @@ var fut = new Fut({
   email,
   password,
   secret,
-  platform
-  loginType: 'web'
+  platform,
+  loginType: 'web',
   captchaHandler: (captcha, resolve) => {
     co(function * () {
       yield fs.writeFileAsync('captcha.jpg', captcha)
       // Do something with the captcha file
-      resolve(captchaRes.text)
+      resolve('asd')
     })
   },
   tfAuthHandler: (send) => {
