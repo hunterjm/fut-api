@@ -1,6 +1,6 @@
 // @flow weak
 
-import urls from './urls'
+const urls = require('./urls')()
 import utils from './utils'
 import _ from 'underscore'
 

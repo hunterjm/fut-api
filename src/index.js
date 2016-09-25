@@ -51,7 +51,6 @@ let Fut = class Fut extends Methods {
 
     if (this.options.loginType === 'web') {
       this.loginLib = Promise.promisifyAll(new Login({proxy: options.proxy}))
-      this.loginLib.login = this.loginLib.loginAsync
     } else if (this.options.loginType === 'mobile') {
       this.loginLib = new MobileLogin({...options, tfCodeHandler: options.tfAuthHandler})
     } else {
@@ -70,29 +69,31 @@ let Fut = class Fut extends Methods {
   }
 
   async _init () {
-    let cookie = await this.loadVariable('cookie')
+    const cookie = await this.loadVariable('cookie')
     if (cookie) {
       this.loginLib.setCookieJarJSON(cookie)
     }
 
-    let minuteLimitStartedAt = await this.loadVariable('minuteLimitStartedAt')
+    const minuteLimitStartedAt = await this.loadVariable('minuteLimitStartedAt')
     this.minuteLimitStartedAt = minuteLimitStartedAt || moment()
   }
 
   async login () {
     await this._init()
-    let loginResponse = await this.loginLib.login(this.options.email, this.options.password, this.options.secret, this.options.platform, this.options.tfAuthHandler, this.options.captchaHandler)
+    const loginMethod = this.options.loginType === 'web' ? 'loginAsync' : 'login'
+    const loginResponse = await this.loginLib[loginMethod](this.options.email, this.options.password, this.options.secret, this.options.platform, this.options.tfAuthHandler, this.options.captchaHandler)
+
     await this.saveVariable('cookie', this.loginLib.getCookieJarJSON())
     this.rawApi = loginResponse.apiRequest
 
-    let loginDefaults = _.omit(this.loginLib.getLoginDefaults(), 'jar')
+    const loginDefaults = _.omit(this.loginLib.getLoginDefaults(), 'jar')
     await this.saveVariable('loginDefaults', loginDefaults)
     if (this.options.loginType === 'web') this.rawApi = Promise.promisify(this.rawApi, this)
     this.isReady = true
   }
 
   async loginCached () {
-    let loginDefaults = await this.loadVariable('loginDefaults')
+    const loginDefaults = await this.loadVariable('loginDefaults')
     if (!loginDefaults) {
       throw new Error('Login defaults are not saved. Use classic login first!')
     }
@@ -110,7 +111,7 @@ let Fut = class Fut extends Methods {
     // limit handler
     await this._limitHandler()
 
-    var defaultOptions = {
+    const defaultOptions = {
       xHttpMethod: 'GET',
       headers: {}
     }
@@ -125,13 +126,13 @@ let Fut = class Fut extends Methods {
     const {statusCode, statusMessage, body} = await this.rawApi(options)
 
     if (statusCode.toString()[0] !== '2') {
-      let request = {url, options: options}
+      const request = {url, options: options}
       throw new Error(`FUT api http error: ${statusCode} ${statusMessage} ${JSON.stringify(body)} request was: ${JSON.stringify(request)}`)
     }
 
     if (utils.isApiError(body)) {
       body.request = {url, options: options}
-      let err = new Error(`Fut api error: ${JSON.stringify(body)}`)
+      const err = new Error(`Fut api error: ${JSON.stringify(body)}`)
       err.futApiStatusCode = Number(body.code)
       throw err
     }
@@ -140,7 +141,7 @@ let Fut = class Fut extends Methods {
 
   async _limitHandler () {
     // seconds
-    let sinceLastRequest = moment().diff(this.lastRequestAt)
+    const sinceLastRequest = moment().diff(this.lastRequestAt)
     if (sinceLastRequest < this.options.minDelay) {
       console.log('Waiting on second limit ...')
       await Promise.delay(this.options.minDelay - sinceLastRequest)
@@ -155,8 +156,8 @@ let Fut = class Fut extends Methods {
     }
 
     if ((this.requestsThisMinute >= this.options.RPM) && this.options.RPM !== 0) {
-      let resetsAt = this.minuteLimitStartedAt.add(1, 'minute')
-      let needsToReset = resetsAt.diff(moment())
+      const resetsAt = this.minuteLimitStartedAt.add(1, 'minute')
+      const needsToReset = resetsAt.diff(moment())
       console.log(`Waiting on RPM ... ${needsToReset}`)
       await Promise.delay(needsToReset)
     }

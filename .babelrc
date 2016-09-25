@@ -2,6 +2,7 @@
   "presets": [ "es2015-node4", "stage-0-bluebird" ],
   "plugins": [
     "transform-runtime",
-    "syntax-flow"
+    "syntax-flow",
+    "transform-flow-strip-types"
   ]
 }

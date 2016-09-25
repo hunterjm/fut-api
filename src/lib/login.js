@@ -4,7 +4,7 @@ module.exports = function (options) {
   var __ = require('underscore')
   var request = require('request')
   var hasher = require('./eaHasher')
-  var urls = require('./urls')
+  var urls = require('./urls')()
   var CookieJar = require('tough-cookie').CookieJar
   var utils = require('./utils')
   const lodash = require('lodash')
@@ -28,7 +28,9 @@ module.exports = function (options) {
 
   var Login = function () {}
 
-  Login.prototype.login = function (email, password, secret, platform, tfCodeCb, captchaCb, loginCb) {
+  Login.prototype.login = function (email, password, secret, platform, tfCodeCb, captchaCb, loginCb, version = 17) {
+    Login.version = version
+
     if (!email || !__.isString(email) || email.trim().length <= 0) return loginCb(new Error('Email is empty.'))
 
     if (!password || !__.isString(password) || password.trim().length <= 0) return loginCb(new Error('Password is empty.'))
@@ -50,7 +52,7 @@ module.exports = function (options) {
       'secret': hasher(secret),
       'tfCodeCb': tfCodeCb,
       'loginCb': loginCb,
-      'gameSku': getGameSku(platform),
+      'gameSku': getGameSku(platform, version),
       'platform': getPlatform(platform),
       captchaCb: captchaCb
     }
@@ -60,7 +62,7 @@ module.exports = function (options) {
       followAllRedirects: true,
       gzip: true,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36',
         'Accept': 'text/html, application/xhtml+xml, */*',
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.8',
@@ -101,18 +103,18 @@ module.exports = function (options) {
     })
   }
 
-  function getGameSku (platform) {
+  function getGameSku (platform, version) {
     switch (platform) {
       case 'pc':
-        return 'FFA16PCC'
+        return `FFA${version}PCC`
       case 'ps3':
-        return 'FFA16PS3'
+        return `FFA${version}PS3`
       case 'ps4':
-        return 'FFA16PS4'
+        return `FFA${version}PS4`
       case 'x360':
-        return 'FFA16XBX'
+        return `FFA${version}XBX`
       case 'xone':
-        return 'FFA16XBO'
+        return `FFA${version}XBO`
     }
 
     return null
@@ -168,9 +170,7 @@ module.exports = function (options) {
       if (body.indexOf('<title>Account Update</title>') > 0) return acceptAccountUpdate(response.request.href)
 
       if (body.indexOf('<title>Login Verification</title>') > 0) {
-        loginDetails.tfCodeCb(function (tfCode) {
-          return sendTwoFactorCode(response.request.href, tfCode)
-        })
+        loginDetails.tfCodeCb().then((tfCode) => sendTwoFactorCode(response.request.href, tfCode))
         return
       }
       loginDetails.loginCb(new Error('Unknown response. Unable to login.'))
@@ -227,9 +227,7 @@ module.exports = function (options) {
       if (error) return loginDetails.loginCb(error)
 
       if (body.indexOf('<title>Login Verification</title>') > 0) {
-        loginDetails.tfCodeCb(function (tfCode) {
-          return sendTwoFactorCode(response.request.href, tfCode)
-        })
+        loginDetails.tfCodeCb().then((tfCode) => sendTwoFactorCode(response.request.href, tfCode))
         return
       }
 
@@ -321,7 +319,7 @@ module.exports = function (options) {
   function getSession () {
     var data = {
       'isReadOnly': false,
-      'sku': 'FUT16WEB',
+      'sku': `FUT${Login.version}WEB`,
       'clientVersion': 1,
       'nucleusPersonaId': loginResponse.persona.personaId,
       'nucleusPersonaDisplayName': loginResponse.persona.personaName,
