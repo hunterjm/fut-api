@@ -7,42 +7,81 @@
 </p>
 
 ## Usage
-### Create a new instance
+### Quick start
 ```javascript
-var futapi = require("fut")
-var apiClient = new futapi([options])
+'use strict'
+
+const readline = require('readline')
+const Fut = require('fut')
+const Promise = require('bluebird')
+const co = require('co')
+const storage = require('node-persist')
+storage.initSync()
+
+var rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+})
+
+const email = process.env.EMAIL
+const password = process.env.PASSWORD
+const platform = process.env.PLATFORM
+const secret = process.env.SECRET
+
+var fut = new Fut({
+  email,
+  password,
+  secret,
+  platform
+  loginType: 'web'
+  // this is optional and happens rarely
+  captchaHandler: (captcha, resolve) => {
+    co(function * () {
+      yield fs.writeFileAsync('captcha.jpg', captcha)
+      // Do something with the captcha file
+      resolve(captchaRes.text)
+    })
+  },
+  tfAuthHandler: (send) => {
+    return new Promise((resolve, reject) => {
+      rl.question('Enter your two factor code:', function (code) {
+        return resolve(code)
+      })
+    })
+  },
+  // yo can return a simple sync function to save/loadVariable
+  saveVariable: (key, val) => {
+    console.log('setting item', key)
+    storage.setItem(key, val)
+  },
+  // or a promise if you do something async
+  loadVariable: co.wrap(function * (key) {
+    var item = storage.getItem(key)
+    return item
+  })
+})
+
+co(function * () {
+  yield fut.login()
+  let resp = yield fut.getCredits()
+  console.log(resp)
+}).catch((e) => console.log(e.stack))
+
 ```
+## Note: All method returns a promise!
+
 ##### Options
-- saveCookie - (default: false) stores the cookiejar after login
-- saveCookiePath - (default: null) path to the cookiejar 
-- loadCookieFromSavePath - (default: false) loads the cookiejar from the saveCookiePath
+See source: https://github.com/futjs/fut-api/blob/master/src/index.js#L20
 
 ## Login
-```javascript
-    
-  function twoFactorCodeCb(next){
-      /* send your authentication code with the "next" method */
-      next("123456")
-  }
-
-    
-    apiClient.login("username","password","secret", "platform"
-        twoFactorCodeCb,
-        captchaCb,
-        function(error,response){
-        if(error) {
-            return console.log("Unable to login.")
-        }
-        console.log("logged in.")
-    })
-```
+See quick start, better docs coming soon...
 * platform: "ps3","ps4","pc","x360","xone"
 
 ## Credits
 
 
 ```javascript
-  apiClient.getCredits(function(error, response){ })
+  apiClient.getCredits()
 ```
 * response: Object
     * credits: number
@@ -58,7 +97,7 @@ var apiClient = new futapi([options])
 
 ## Pilesize
 ```javascript
-  apiClient.getPilesize(function(error, response){ })
+  apiClient.getPilesize()
 ```
 * response: Object
     * entries: []
@@ -67,7 +106,7 @@ var apiClient = new futapi([options])
 
 ## Tradepile
 ```javascript
-  apiClient.getTradepile(function(error, response){ })
+  apiClient.getTradepile()
 ```
 * response: Object
     * credits: number
@@ -135,7 +174,7 @@ var apiClient = new futapi([options])
 
 ## Relist tradepile
 ```javascript
-  apiClient.relist(function(error, response){ })
+  apiClient.relist()
 ```
 * response: Object
     * tradeIdList: []
@@ -143,14 +182,14 @@ var apiClient = new futapi([options])
         
 ## Watchlist
 ```javascript
-  apiClient.getWatchlist(function(error, response){ })
+  apiClient.getWatchlist()
 ```
 
 * response: -> see tradepile response
 
 ## Transfermarket
 ```javascript
-  apiClient.search({type: "player", lev: "gold", maskedDefId: 183907, pos: "CB" }, function(error, response){ })
+  apiClient.search({type: "player", lev: "gold", maskedDefId: 183907, pos: "CB" })
 ```
 
 * filter 
@@ -187,7 +226,7 @@ var apiClient = new futapi([options])
 
 ## Place bid
 ```javascript
-  apiClient.placeBid(tradeId, coins, function(error, response){ })
+  apiClient.placeBid(tradeId, coins)
 ```
 
 * tradId: number
@@ -196,7 +235,7 @@ var apiClient = new futapi([options])
 
 ## List item
 ```javascript
-  apiClient.listItem(itemDataId, startingBid, buyNowPrice, duration, function(error, response){ })
+  apiClient.listItem(itemDataId, startingBid, buyNowPrice, duration)
 ```
 * itemDataId: number -> itemData.id
 * startingBid: number
@@ -208,32 +247,32 @@ var apiClient = new futapi([options])
     
 ## Auction status
 ```javascript
-  apiClient.getStatus([tradeIds], function(error, response){ })
+  apiClient.getStatus([tradeIds])
 ```
 * tradeIds: number[] -> tradeId
 * response: -> see tradepile response
 
 ## Add to watchlist
 ```javascript
-  apiClient.addToWatchlist(tradeId, function(error){ })
+  apiClient.addToWatchlist(tradeId)
 ```
 * tradeId: number -> tradeId
 
 ## remove from tradepile
 ```javascript
-  apiClient.removeFromTradepile(tradeId, function(error){ })
+  apiClient.removeFromTradepile(tradeId)
 ```
 * tradeId: number -> tradeId
 
 ## remove from watchlist
 ```javascript
-  apiClient.removeFromWatchlist(tradeId, function(error){ })
+  apiClient.removeFromWatchlist(tradeId)
 ```
 * tradeId: number -> tradeId
 
 ## send to tradepile
 ```javascript
-  apiClient.sendToTradepile(itemDataId, function(error, response){ })
+  apiClient.sendToTradepile(itemDataId)
 ```
 * itemDataId: number -> itemData.id
 * response: Object
@@ -244,7 +283,7 @@ var apiClient = new futapi([options])
         
 ## send to tradepile
 ```javascript
-  apiClient.sendToClub(itemDataId, function(error, response){ })
+  apiClient.sendToClub(itemDataId)
 ```
 * itemDataId: number -> itemData.id
 * response: Object
@@ -255,7 +294,7 @@ var apiClient = new futapi([options])
         
 ## Quick sell
 ```javascript
-  apiClient.quickSell(itemDataId, function(error, response){ })
+  apiClient.quickSell(itemDataId)
 ```
 * itemDataId: number -> itemData.id
 * response: Object
