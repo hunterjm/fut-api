@@ -1,4 +1,4 @@
-# fut-api - FIFA 16 - unofficial
+# fut - FIFA 17 - unofficial
 
 <p align="center">
   <a href="https://www.npmjs.com/package/fut"><img src="https://img.shields.io/npm/dm/fut.svg" alt="npm downloads"></a>
