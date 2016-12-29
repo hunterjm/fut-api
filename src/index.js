@@ -163,6 +163,9 @@ let Fut = class Fut extends Methods {
       console.log(`Waiting on RPM ... ${needsToReset}`)
       await Promise.delay(needsToReset)
     }
+
+    // TODO: continue this
+    this.lastRequestAt = moment()
   }
 }
 
