@@ -50,10 +50,23 @@ module.exports = {
     if (coins >= 1000) return coins + 100
     return coins + 50
   },
-  getBaseId: function (id) {
-    while (id > 16777216) {
-      id -= 16777216
+  getBaseId: function(resourceId, returnVersion=false) {
+    // Calculate base id and version from a resource id.
+    var version = 0;
+    resourceId = Math.abs(resourceId);
+
+    while (resourceId > 0x01000000) {  // 16777216
+      version += 1;
+      if (version === 1)
+        resourceId -= 0x80000000;  // 2147483648
+      else if (version === 2)
+        resourceId -= 0x03000000;  // 50331648
+      else
+        resourceId -= 0x01000000;  // 16777216
+      resourceId = Math.abs(resourceId);
     }
-    return id
+
+    if (returnVersion) return { baseId: resourceId, version: version };
+    return resourceId;
   }
 }
