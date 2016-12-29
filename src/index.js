@@ -144,6 +144,8 @@ let Fut = class Fut extends Methods {
     const sinceLastRequest = moment().diff(this.lastRequestAt)
     if (sinceLastRequest < this.options.minDelay) {
       console.log('Waiting on second limit ...')
+      // Keep queuing up
+      this.lastRequestAt = moment().add(sinceLastRequest, 'ms')
       await Promise.delay(this.options.minDelay - sinceLastRequest)
     }
 
@@ -161,9 +163,6 @@ let Fut = class Fut extends Methods {
       console.log(`Waiting on RPM ... ${needsToReset}`)
       await Promise.delay(needsToReset)
     }
-
-    // TODO: continue this
-    this.lastRequestAt = moment()
   }
 }
 
