@@ -1,6 +1,6 @@
 {
   "name": "fut-promise",
-  "version": "0.8.7",
+  "version": "0.8.8",
   "description": "fifa 17 web-app api",
   "main": "./dist/index.js",
   "scripts": {
