@@ -62,7 +62,7 @@ module.exports = function (options) {
       followAllRedirects: true,
       gzip: true,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36',
         'Accept': 'text/html, application/xhtml+xml, */*',
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.8',
@@ -156,7 +156,7 @@ module.exports = function (options) {
         '_rememberMe': 'on',
         'rememberMe': 'on',
         '_eventId': 'submit',
-        'facebookAuth': ''
+        'gCaptchaResponse': ''
       }
     }, function (error, response, body) {
       if (error) return loginDetails.loginCb(error)

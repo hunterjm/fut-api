@@ -1,8 +1,8 @@
 # fut - FIFA 17 - unofficial
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/fut"><img src="https://img.shields.io/npm/dm/fut.svg" alt="npm downloads"></a>
-  <a href="https://www.npmjs.com/package/fut"><img src="https://img.shields.io/npm/v/fut.svg" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/fut-promise"><img src="https://img.shields.io/npm/dm/fut-promise.svg" alt="npm downloads"></a>
+  <a href="https://www.npmjs.com/package/fut-promise"><img src="https://img.shields.io/npm/v/fut-promise.svg" alt="npm version"></a>
   <a href="https://standardjs.com"><img src="https://img.shields.io/badge/code%20style-standard-brightgreen.svg" alt="js-standard-style"></a>
 </p>
 
@@ -71,7 +71,7 @@ co(function * () {
 ## Note: All method returns a promise!
 
 ##### Options
-See source: https://github.com/futjs/fut-api/blob/master/src/index.js#L20
+See source: https://github.com/hunterjm/fut-api/blob/master/src/index.js#L20
 
 ## Login
 See quick start, better docs coming soon...
@@ -179,7 +179,7 @@ See quick start, better docs coming soon...
 * response: Object
     * tradeIdList: []
         * id: number
-        
+
 ## Watchlist
 ```javascript
   apiClient.getWatchlist()
@@ -192,7 +192,7 @@ See quick start, better docs coming soon...
   apiClient.search({type: "player", lev: "gold", maskedDefId: 183907, pos: "CB" })
 ```
 
-* filter 
+* filter
     * searchFilterBase
         * type: string      -> player, training, development
         * start: number     -> page
@@ -202,7 +202,7 @@ See quick start, better docs coming soon...
         * minb: number      -> min buy
         * maxb: number      -> max buy
         * lev: string       -> bronze, silver, gold
-        
+
     * playerSearchFilter extends searchFilterBase
         * maskedDefId: number   -> baseId
         * rare: string      -> SP
@@ -212,16 +212,16 @@ See quick start, better docs coming soon...
         * leag: number      -> leagueId
         * team: number      -> teamId
         * playStyle: number -> playerStyleId
-        
+
     * consumableFilter extends searchFilterBase
         * cat: string       -> playerTraining, GKTraining, position, playStyle, managerLeagueModifier, contract, fitness, healing
-        
+
     * positionChangeSearchFilter extends consumableFilter
         * pos: string       -> LB-LWB (OLD-NEW)
-        
+
     * playerStyleSearchFilter extends consumableFilter
         * playStyle: number -> playerStyleId
-    
+
 * response: -> see tradepile response
 
 ## Place bid
@@ -242,9 +242,9 @@ See quick start, better docs coming soon...
 * buyNowPrice: number
 * duration: number -> seconds -> valid values 3600 = 1h, 10800 = 3h, 21600 = 6h, 43200 = 12h, 86400 = 1d, 259200 = 3d
 
-* response: 
+* response:
     * id: number
-    
+
 ## Auction status
 ```javascript
   apiClient.getStatus([tradeIds])
@@ -280,7 +280,7 @@ See quick start, better docs coming soon...
         * id: number
         * pile: string
         * success: boolean
-        
+
 ## send to tradepile
 ```javascript
   apiClient.sendToClub(itemDataId)
@@ -291,7 +291,7 @@ See quick start, better docs coming soon...
         * id: number
         * pile: string
         * success: boolean
-        
+
 ## Quick sell
 ```javascript
   apiClient.quickSell(itemDataId)
@@ -301,7 +301,7 @@ See quick start, better docs coming soon...
     * items: []
         * id: number
     * totalCredits: number
-    
+
 ## Functions
 
 ### Validate price/coins

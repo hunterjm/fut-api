@@ -28,6 +28,8 @@ let Fut = class Fut extends Methods {
    * @param  {Boolean} options.loadVariable   [description]
    * @param  {Number}  options.RPM            [description]
    * @param  {Number}  options.minDelay       [description]
+   * @param  {Number}  options.varianceMin    [description]
+   * @param  {Number}  options.varianceMax    [description]
    * @param  {[String]} options.proxy         [description]
    * @param  {[String]} options.loginType     [description]
    * @return {[type]}                         [description]
@@ -41,6 +43,8 @@ let Fut = class Fut extends Methods {
 
     let defaultOptions = {
       RPM: 0,
+      varianceMin: 0.75,
+      varianceMax: 1.25,
       minDelay: 0,
       loginType: 'web'
     }
@@ -146,7 +150,10 @@ let Fut = class Fut extends Methods {
       console.log('Waiting on second limit ...')
       // Keep queuing up
       this.lastRequestAt = moment().add(sinceLastRequest, 'ms')
-      await Promise.delay(this.options.minDelay - sinceLastRequest)
+      await Promise.delay(Math.floor(
+        (this.options.minDelay - sinceLastRequest) *
+        (Math.random() * (this.options.varianceMax - this.options.varianceMin) + this.options.varianceMin)
+      ))
     }
 
     // minutes
