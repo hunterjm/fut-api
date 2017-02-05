@@ -17,6 +17,7 @@ const urls = (version:number = 17) => {
       captchaImg: `https://www.easports.com/iframe/fut${version}/p/ut/captcha/img?token=AAAA&_=`
     },
     api: {
+      userInfo: `/ut/game/fifa${version}/usermassinfo`,
       credits: `/ut/game/fifa${version}/user/credits`,
       tradepile: `/ut/game/fifa${version}/tradepile`,
       removeFromTradepile: `/ut/game/fifa${version}/trade/{0}`,

@@ -32,6 +32,7 @@ let Fut = class Fut extends Methods {
    * @param  {Number}  options.varianceMax    [description]
    * @param  {[String]} options.proxy         [description]
    * @param  {[String]} options.loginType     [description]
+   * @param  {Boolean} options.autoLogin      [description]
    * @return {[type]}                         [description]
    */
   constructor (options) {
@@ -46,7 +47,8 @@ let Fut = class Fut extends Methods {
       varianceMin: 0.75,
       varianceMax: 1.25,
       minDelay: 0,
-      loginType: 'web'
+      loginType: 'web',
+      autoLogin: true
     }
 
     this.options = {}
@@ -94,6 +96,11 @@ let Fut = class Fut extends Methods {
     await this.saveVariable('loginDefaults', loginDefaults)
     if (this.options.loginType === 'web') this.rawApi = Promise.promisify(this.rawApi, this)
     this.isReady = true
+    const user = await this.getUser()
+    if (user.userInfo.feature.trade === 0) {
+      throw new Error('Transfer Market is not enabled for this account.')
+    }
+    return user
   }
 
   async loginCached () {
@@ -138,6 +145,11 @@ let Fut = class Fut extends Methods {
       body.request = {url, options: options}
       const err = new Error(`Fut api error: ${JSON.stringify(body)}`)
       err.futApiStatusCode = Number(body.code)
+      err.reason = body.string || body.reason
+      // Automatically log back in if expired session
+      if ((err.futApiStatusCode === 401 || body.reason === 'expired session') && this.options.autoLogin) {
+        await this.loginCached()
+      }
       throw err
     }
     return body

@@ -7,6 +7,8 @@ import _ from 'underscore'
 export default class Methods {
   api: Function;
 
+  getUser = () => this.api(urls.api.userInfo)
+
   getCredits = () => this.api(urls.api.credits)
 
   getTradepile = () => this.api(urls.api.tradepile)
