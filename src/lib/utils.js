@@ -52,19 +52,22 @@ module.exports = {
   },
   getBaseId: function (resourceId, returnVersion = false) {
     // Calculate base id and version from a resource id.
+    var baseId = resourceId + 0xC4000000 // 3288334336
     var version = 0
-    resourceId = Math.abs(resourceId)
 
-    while (resourceId > 0x01000000) {  // 16777216
-      version += 1
-      if (version === 1) {
-        resourceId -= 0x80000000  // 2147483648
-      } else if (version === 2) {
-        resourceId -= 0x03000000  // 50331648
-      } else {
-        resourceId -= 0x01000000  // 16777216
+    while (baseId > 0x01000000) {  // 16777216
+      version++
+      switch (version) {
+        case 1:
+          baseId -= 0x80000000  // 2147483648
+          break
+        case 2:
+          baseId -= 0x03000000  // 50331648
+          break
+        default:
+          baseId -= 0x01000000  // 16777216
+          break
       }
-      resourceId = Math.abs(resourceId)
     }
 
     if (returnVersion) return { baseId: resourceId, version: version }
