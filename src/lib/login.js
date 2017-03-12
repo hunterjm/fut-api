@@ -153,12 +153,40 @@ module.exports = function (options) {
       form: {
         'email': loginDetails.email,
         'password': loginDetails.password,
+        'country': 'US', // is it important?
+        'phoneNumber': '', // TODO: add phone code verification
+        'passwordForPhone': '',
+        'gCaptchaResponse': '',
+        'isPhoneNumberLogin': 'false', // TODO: add phone login
+        'isIncompletePhone': '',
         '_rememberMe': 'on',
         'rememberMe': 'on',
-        '_eventId': 'submit',
-        'gCaptchaResponse': ''
+        '_eventId': 'submit'
       }
     }, function (error, response, body) {
+      if (error) return loginDetails.loginCb(error)
+
+      if (body.indexOf('var redirectUri') > 0) return handleRedirect(body)
+
+      if (body.indexOf('<title>FIFA Football | FUT Web App | EA SPORTS</title>') > 0) return getNucleus()
+
+      if (body.indexOf('<title>Log In</title>') > 0) return loginDetails.loginCb(new Error('Unable to log in.'))
+
+      if (body.indexOf('<title>Set Up an App Authenticator</title>') > 0) return cancelLoginVerificationUpdate(response.request.href)
+
+      if (body.indexOf('<title>Account Update</title>') > 0) return acceptAccountUpdate(response.request.href)
+
+      if (body.indexOf('<title>Login Verification</title>') > 0) {
+        loginDetails.tfCodeCb().then((tfCode) => sendTwoFactorCode(response.request.href, tfCode))
+        return
+      }
+      loginDetails.loginCb(new Error(JSON.stringify(response, null, 2)))
+    })
+  }
+
+  function handleRedirect (body) {
+    var url = body.match(/var redirectUri = '(https?:\/\/.+\/p\/web[0-9]+\/login\?execution=.+?)'/)
+    defaultRequest.get(url[1] + '&_eventId=end', function (error, response, body) {
       if (error) return loginDetails.loginCb(error)
 
       if (body.indexOf('<title>FIFA Football | FUT Web App | EA SPORTS</title>') > 0) return getNucleus()
@@ -173,7 +201,7 @@ module.exports = function (options) {
         loginDetails.tfCodeCb().then((tfCode) => sendTwoFactorCode(response.request.href, tfCode))
         return
       }
-      loginDetails.loginCb(new Error('Unknown response. Unable to login.'))
+      loginDetails.loginCb(new Error(JSON.stringify(response, null, 2)))
     })
   }
 
