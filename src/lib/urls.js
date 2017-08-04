@@ -11,7 +11,7 @@ const urls = (version:number = 17) => {
       shards: `https://www.easports.com/iframe/fut${version}/p/ut/shards/v2`,
       accounts: `https://www.easports.com/iframe/fut${version}/p/ut/game/fifa${version}/user/accountinfo?sku=FUT${version}WEB&returningUserGameYear=2015&_=`,
       session: `https://www.easports.com/iframe/fut${version}/p/ut/auth`,
-      question: `https://www.easports.com/iframe/fut${version}/p/ut/game/fifa${version}/phishing/question?_=`,
+      question: `https://www.easports.com/iframe/fut${version}/p/ut/game/fifa${version}/phishing/question?redirect=false&_=`,
       validate: `https://www.easports.com/iframe/fut${version}/p/ut/game/fifa${version}/phishing/validate?_=`,
       validateCaptcha: `https://www.easports.com/iframe/fut${version}/p/ut/captcha/validate`,
       captchaImg: `https://www.easports.com/iframe/fut${version}/p/ut/captcha/img?token=AAAA&_=`

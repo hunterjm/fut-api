@@ -135,7 +135,7 @@ module.exports = function (options) {
   }
 
   function getMain () {
-    defaultRequest.get(urls.login.main, function (error, response, body) {
+    defaultRequest.get(urls.login.main, { maxRedirects: 20 }, function (error, response, body) {
       if (error) return loginDetails.loginCb(error)
 
       if (body.indexOf('<title>FIFA Football | Football Club | EA SPORTS</title>') > 0) return getNucleus()
@@ -366,7 +366,7 @@ module.exports = function (options) {
       'identification': {'authCode': ''}
     }
 
-    defaultRequest.post(urls.login.session, { body: data }, function (error, response, body) {
+    defaultRequest.post(urls.login.session, { body: data, qs: { 'sku_a': `F${Login.version}` } }, function (error, response, body) {
       if (error) return loginDetails.loginCb(error)
       if (response.statusCode !== 200) return loginDetails.loginCb(new Error(`Unknown response. Unable to login. ${response.statusCode} ${JSON.stringify(body)}`))
 
